@@ -71,6 +71,9 @@ class Cmd {
         VOID AddToken(IN PTOKEN *head, IN CHAR *cmd, IN DWORD dwIndex);
         VOID FreeTokens(IN PTOKEN head);
 
+        //handle commands
+        CHAR **ParseCommands(IN PTOKEN tokens, OUT WORD *argc);
+
     public:
         //constructors.
         Cmd();

@@ -251,6 +251,41 @@ VOID Cmd::FreeTokens(IN PTOKEN head){
     head = nullptr;
 }
 
+/**
+ * Parsing commands.
+ */
+CHAR** Cmd::ParseCommands(IN PTOKEN tokens, OUT WORD *argc){
+
+    //vars.
+    CHAR **result  = nullptr;
+    WORD i         = 0;
+    *argc          = 0;
+
+    PTOKEN current = tokens;
+
+    if(tokens == nullptr)
+        return nullptr;
+    
+    while(current){
+        (*argc)++;
+        current = current->next;
+    }
+
+    current = tokens;
+    result = (CHAR**)malloc((*argc + 1) * sizeof(CHAR*));
+    if(result == nullptr)
+        return nullptr;
+
+    while(current){
+        result[i] = current->cmd;
+        current = current->next;
+        i++;
+    }
+
+    result[*argc] = NULL;
+    return result;
+}
+
 
 //--------------------------------------------------
 
@@ -258,6 +293,11 @@ VOID Cmd::FreeTokens(IN PTOKEN head){
  * Main function in charge of running shell handler.
  */
 VOID Cmd::RunShell(){
+    //cmd handling.
+    CHAR **cmd = nullptr;
+    WORD argc  = 0;
+
+    //fgets handler.
     CHAR cBuffer[MAX_TOKENS_LEN] = {0};
 
     this->Init();
@@ -273,10 +313,25 @@ VOID Cmd::RunShell(){
         if(fgets(cBuffer, sizeof(cBuffer), stdin) != nullptr){
             cBuffer[strcspn(cBuffer, "\n")] = '\0';
 
+            //freeing mem
             if(this->tokens)
                 this->FreeTokens(tokens);
             
+            if(cmd)
+                free(cmd);
+            //------------
+            
             this->Lexer(cBuffer);
+
+            //handling command.
+            cmd = this->ParseCommands(this->tokens, &argc);
+            if(cmd == nullptr){
+                std::cout << "[!] An error occured." << std::endl;
+                break;
+            }
+
+            if(argc == 0)
+                continue;
 
             Sleep(1);
         }
