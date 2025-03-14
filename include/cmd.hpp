@@ -25,6 +25,16 @@ typedef struct BUILTINS {
 } BUILTINS, *PBUILTINS;
 
 /**
+ * Token struct
+ */
+typedef struct TOKEN {
+    DWORD dwIndex;
+    CHAR *cmd;
+    struct TOKEN *next;
+} TOKEN, *PTOKEN;
+
+
+/**
  * Main CMD class in charge of running Albus.
  */
 class Cmd {
@@ -34,6 +44,9 @@ class Cmd {
 
         //handling builtins commands.
         PBUILTINS builtins[10] = {0};
+
+        //tokens list.
+        PTOKEN tokens = nullptr;
 
         //main private functions.
         static BOOL WINAPI HandleCtrlC(IN DWORD dwType);
@@ -51,6 +64,12 @@ class Cmd {
         VOID Clean(CHAR** = nullptr);
         VOID Pwd(CHAR** = nullptr);
         VOID Exit(IN CHAR **args);
+
+        //parsing & lexing
+        VOID Lexer(IN CHAR *cInput);
+        PTOKEN CreateToken(IN CHAR *cmd, IN DWORD dwIndex);
+        VOID AddToken(IN PTOKEN *head, IN CHAR *cmd, IN DWORD dwIndex);
+        VOID FreeTokens(IN PTOKEN head);
 
     public:
         //constructors.

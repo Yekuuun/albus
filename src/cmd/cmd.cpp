@@ -1,4 +1,12 @@
+/**
+ * Author : Yekuuunu
+ * Github : https://github.com/Yekuuun
+ * 
+ * Notes  : this file contains the base implementation of the inner minishell for albus. (command interpreter)
+ */
+
 #include "cmd.hpp";
+#include "ft_str.hpp";
 
 Cmd::Cmd(){};
 Cmd::~Cmd(){}
@@ -53,7 +61,7 @@ UINT Cmd::HashFunction(IN CHAR *cName){
 VOID Cmd::AddBuiltin(IN CHAR *cName, IN VOID (Cmd::*func)(CHAR **)){
     UINT index    = this->HashFunction(cName);
     PBUILTINS cmd = (PBUILTINS)malloc(sizeof(BUILTINS));
-    if(cmd == NULL)
+    if(cmd == nullptr)
         return;
     
     cmd->cName    = cName;
@@ -82,7 +90,7 @@ BOOL Cmd::IsBuiltin(IN CHAR *cStr){
     UINT index = this->HashFunction(cStr);
     PBUILTINS cmd = this->builtins[index];
 
-    return this->builtins[index] != NULL && (strcmp(this->builtins[index]->cName, cStr) == 0);
+    return this->builtins[index] != nullptr && (strcmp(this->builtins[index]->cName, cStr) == 0);
 }
 
 
@@ -103,7 +111,7 @@ VOID Cmd::Init(){
  */
 VOID Cmd::Clean(CHAR**){
     HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hStdOut == NULL)
+    if (hStdOut == nullptr)
         return;
 
     DWORD dwMode = 0;
@@ -154,6 +162,95 @@ VOID Cmd::Exit(IN CHAR **args){
     exit(EXIT_CODE);
 }
 
+//--------LEXING & PARSING-----------
+
+/**
+ * Creating a new token.
+ * @param cmd => token
+ * @param dwIndex => index => (count)
+ */
+PTOKEN Cmd::CreateToken(IN CHAR *cmd, IN DWORD dwIndex){
+    PTOKEN token = (PTOKEN)malloc(sizeof(TOKEN));
+    if(token == nullptr)
+        return nullptr;
+    
+    token->cmd = Ft_str::Ft_Strndup(cmd, strlen(cmd));
+    token->dwIndex = dwIndex;
+    token->next = nullptr;
+
+    return token;
+}
+
+/**
+ * Adding a new token to the linked list.
+ * @param cmd => token
+ * @param dwIndex => index => (count)
+ * @param head => beginning of the list.
+ */
+VOID Cmd::AddToken(IN PTOKEN *head, IN CHAR *cmd, IN DWORD dwIndex){
+    PTOKEN newToken = this->CreateToken(cmd, dwIndex);
+    if(newToken == nullptr)
+        return; 
+    
+    if (*head == nullptr) {
+        *head = newToken;
+    }
+    else {
+        PTOKEN temp = *head;
+        while(temp->next)
+            temp = temp->next;
+        
+        temp->next = newToken;
+    }
+}
+
+/**
+ * Lexing entry of inputs.
+ */
+VOID Cmd::Lexer(IN CHAR *cInput){
+    DWORD dwIndex = 0;
+    DWORD i = 0;
+
+    this->tokens = nullptr;
+
+    while(cInput[i]){
+        CHAR cCurrent = cInput[i];
+
+        if(isspace(cCurrent)){
+            i++;
+            continue;
+        }
+        else if(cInput[i] == '\0'){
+            break;
+        }
+        else {
+            DWORD dwStart = i;
+            while(cInput[i] && !isspace(cInput[i]))
+                i++;
+            
+            CHAR *cWord = Ft_str::Ft_Strndup(&cInput[dwStart], i - dwStart);
+            if(cWord)
+                AddToken(&this->tokens, cWord, dwIndex);
+            
+            dwIndex++;
+        }
+    }
+}
+
+/**
+ * Free list of tokens.
+ */
+VOID Cmd::FreeTokens(IN PTOKEN head){
+    while(head){
+        PTOKEN next = head->next;
+        free(head->cmd);
+        free(head);
+        head = next;
+    }
+
+    head = nullptr;
+}
+
 
 //--------------------------------------------------
 
@@ -166,16 +263,20 @@ VOID Cmd::RunShell(){
     this->Init();
     this->Clean();
 
-    if(!SetConsoleCtrlHandler(&Cmd::HandleCtrlC, TRUE)){
+    if(!SetConsoleCtrlHandler(Cmd::HandleCtrlC, TRUE)){
         this->Exit(nullptr);
     }
 
     while(this->KEEP_RUNNING){
         this->DisplayCmdHeader();
 
-        if(fgets(cBuffer, sizeof(cBuffer), stdin) != NULL){
+        if(fgets(cBuffer, sizeof(cBuffer), stdin) != nullptr){
             cBuffer[strcspn(cBuffer, "\n")] = '\0';
-            printf("%s\n", cBuffer);
+
+            if(this->tokens)
+                this->FreeTokens(tokens);
+            
+            this->Lexer(cBuffer);
 
             Sleep(1);
         }
@@ -183,6 +284,10 @@ VOID Cmd::RunShell(){
             this->KEEP_RUNNING = 0;
         }
     }
+
+__CLEAN:
+    if(this->tokens)
+        this->FreeTokens(tokens);
 
     return;
 }
