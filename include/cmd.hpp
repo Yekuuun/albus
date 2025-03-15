@@ -10,7 +10,6 @@
 
 #include "global.hpp"
 
-#define HASH_TABLE_BUILTINS_SIZE 10
 #define MAX_TOKENS_LEN 100
 
 class Cmd;

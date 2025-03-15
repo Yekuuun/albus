@@ -7,6 +7,7 @@
 
 #include "cmd.hpp";
 #include "ft_str.hpp";
+#include "pe.hpp";
 
 Cmd::Cmd(){};
 Cmd::~Cmd(){};
@@ -71,14 +72,14 @@ VOID Cmd::DisplayCmdHeader(){
  * Hash function creating an unique index.
  * @param cName => in function name.
  */
-UINT Cmd::HashFunction(IN CHAR *cName){
-    UINT hash = 0;
-    while(*cName){
-        hash += *cName++;
+UINT Cmd::HashFunction(IN CHAR *cName) {
+    UINT hash = 5381;
+    while (*cName) {
+        hash = ((hash << 5) + hash) + *cName++; // hash * 33 + c
     }
-
     return hash % HASH_TABLE_BUILTINS_SIZE;
 }
+
 
 /**
  * Add a function to builtins table.
@@ -127,7 +128,7 @@ BOOL Cmd::IsBuiltin(IN CHAR *cStr){
 VOID Cmd::Init(){
     this->AddBuiltin("clean", &Cmd::Clean);
     this->AddBuiltin("pwd", &Cmd::Pwd);
-    this->AddBuiltin("exit", &Cmd::Exit);
+    this->AddBuiltin("help", &Cmd::Help);
 }
 
 
@@ -172,7 +173,7 @@ VOID Cmd::Pwd(IN CHAR**){
 
     DWORD dwPath = GetCurrentDirectoryA(MAX_PATH, lpPath);
     if(dwPath != 0)
-        printf("$%s\n", lpPath);
+        printf("$ %s\n", lpPath);
 }
 
 /**
@@ -202,6 +203,8 @@ VOID Cmd::Help(IN CHAR**){
 
     std::cout << "SYNOPSIS :" << std::endl;
     printf("\t [COMMAND]... [OPTIONS]...\n");
+
+    std::cout << "\n\n" << std::endl;
 }
 
 //--------LEXING & PARSING-----------
@@ -351,6 +354,9 @@ VOID Cmd::RunShell(){
         this->Exit(nullptr);
     }
 
+    Pe pe;
+    pe.Init();
+
     //main loop.
     while(this->KEEP_RUNNING){
         this->DisplayCmdHeader();
@@ -378,8 +384,16 @@ VOID Cmd::RunShell(){
             if(argc == 0)
                 continue;
             
+            if(strcmp(cmd[0], "exit") == 0){
+                pe.Clean();
+                this->Exit(cmd);
+            }
+            
             if(this->IsBuiltin(cmd[0])){
                 this->Exec(cmd);
+            }
+            else {
+                pe.HandleCommand(cmd);
             }
 
             Sleep(1);
