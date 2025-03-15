@@ -50,37 +50,31 @@
   [COMMAND]... [OPTIONS]...
 
 ### BUILTINS
-- `pwd`    → Print current working directory.  
-- `exit`   → Exiting Albus.  
-- `help`   → Show helping functions.  
-- `cls`    → Clean console.  
-- `clean`  → Clean console.  
+- pwd    → Print current working directory.  
+- exit   → Exiting Albus.  
+- help   → Show helping functions.  
+- cls    → Clean console.  
+- clean  → Clean console.  
 
 ## PE COMMANDS
-- `load <path_to_file>` → Load PE into memory.  
-- `dump <section_name>` → Dump a given section from the loaded PE file.  
-- `unload`              → Unload PE from memory.  
-- `infos`               → Show information about the loaded PE file (name, path, size).  
+- load <path_to_file>  → Load PE into memory.  
+- dump <section_name>  → Dump a given section from the loaded PE file.  
+- unload               → Unload PE from memory.  
+- infos                → Show information about the loaded PE file (name, path, size).  
 ```
-
----
 
 ## BUILD IT :
 
-create a new folder `build`
+**create a new folder** `build`
 
-go to `build` & run `cmake ..`
+**go to** `build` **& run** `cmake ..`
 
-build solution with `cmake --build .`
+**build solution with** `cmake --build .`
 
-run it in `/build/debug`
+**run it in** `/build/debug`
 
-<br>
-
-## Samples :
-
+---
 <img src="https://github.com/Yekuuun/albus/blob/main/assets/intro.png" alt="DebugInfo" />
 <img src="https://github.com/Yekuuun/albus/blob/main/assets/dump.png" alt="DebugInfo" />
 <img src="https://github.com/Yekuuun/albus/blob/main/assets/load-pe.png" alt="DebugInfo" />
 
-....
