@@ -7,6 +7,7 @@
 
 #include "cmd.hpp";
 #include "ft_str.hpp";
+#include "ft_console.hpp";
 #include "pe.hpp";
 
 Cmd::Cmd(){};
@@ -24,7 +25,7 @@ BOOL WINAPI Cmd::HandleCtrlC(IN DWORD dwType){
  * Show albus banner.
  */
 VOID Cmd::ShowBanner(){
-    std::cout << "\033[1;32m" // Active la couleur verte
+    std::cout << "\033[1;35m" // Active la couleur verte
     << R"(
         ___    ____              
        /   |  / / /_  __  _______
@@ -37,33 +38,23 @@ VOID Cmd::ShowBanner(){
 
 
     std::cout <<
-    "\033[1;33m-------------------------------------------\n"
-    "\033[1;32mProject:  \033[1;34mAlbus\n"
-    "\033[1;32mAuthor:   \033[1;34mYekuuun\n"
-    "\033[1;32mVersion:  \033[1;34m1.0.0\n"
-    "\033[1;32mDescription: \033[1;34mA base CLI PE viewer\n"
-    "\033[1;33m-------------------------------------------\n"
+    "\033[1;34m-------------------------------------------\n"
+    "\033[1;35mProject:  \033[1;34mAlbus\n"
+    "\033[1;35mAuthor:   \033[1;34mYekuuun\n"
+    "\033[1;35mVersion:  \033[1;34m1.0.0\n"
+    "\033[1;35mDescription: \033[1;34mA base CLI PE viewer\n"
+    "\033[1;34m-------------------------------------------\n"
     "\033[0m"
     << std::endl;
-}
-
-/**
- * Changing cmd color
- * @param color => color code.
- */
-VOID Cmd::SetBashColor(IN WORD wColor){
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    if(hConsole)
-        SetConsoleTextAttribute(hConsole, wColor);
 }
 
 /**
  * Display cmd header.
  */
 VOID Cmd::DisplayCmdHeader(){
-    this->SetBashColor(10);
+    Ft_console::SetBashColor(13);
     printf("albus > ");
-    this->SetBashColor(7);
+    Ft_console::SetBashColor(7);
 }
 
 //-------SHELL HANDLERS-------
@@ -123,10 +114,11 @@ BOOL Cmd::IsBuiltin(IN CHAR *cStr){
 
 
 /**
- * Init builtins.
+ * Init shell commands builtins.
  */
 VOID Cmd::Init(){
     this->AddBuiltin("clean", &Cmd::Clean);
+    this->AddBuiltin("cls", &Cmd::Clean);
     this->AddBuiltin("pwd", &Cmd::Pwd);
     this->AddBuiltin("help", &Cmd::Help);
 }
@@ -186,11 +178,13 @@ VOID Cmd::Exit(IN CHAR **args){
     if(args[1] != NULL)
         EXIT_CODE = atoi(args[1]);
 
+    Ft_console::SetBashColor(13);
     printf("$ Exiting albus. CIAO....\n");
 
     if(this->tokens)
         this->FreeTokens(this->tokens);
-        
+    
+    Ft_console::SetBashColor(7);
     exit(EXIT_CODE);
 }
 

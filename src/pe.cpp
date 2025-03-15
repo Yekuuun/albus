@@ -6,6 +6,7 @@
  */
 
 #include "pe.hpp"
+#include "ft_console.hpp"
 
 Pe::Pe(){};
 Pe::~Pe(){};
@@ -113,11 +114,18 @@ VOID Pe::HandleCommand(IN CHAR **args){
  */
 VOID Pe::Infos(IN CHAR**){
     if(this->pBuff){
-        std::cout << "------------------------" << std::endl;
+        Ft_console::SetBashColor(13);
+        std::cout << "\n-------------------------------------" << std::endl;
+        Ft_console::SetBashColor(7);
+
+        std::cout << "LOADED PE INFORMATIONS : \n" << std::endl;
         std::cout << "Name :" << this->lpPath << std::endl;
         std::cout << "Image size : " << this->dwSizeOfImage << std::endl;
         std::cout << "Base address : " << "0x" << static_cast<void*>(this->pBuff) << std::endl;
-        std::cout << "------------------------" << std::endl;
+
+        Ft_console::SetBashColor(13);
+        std::cout << "-------------------------------------" << std::endl;
+        Ft_console::SetBashColor(7);
         printf("\n"); 
     }
     else {
@@ -161,6 +169,7 @@ VOID Pe::Load(IN CHAR **args){
     if(dwSize == INVALID_FILE_SIZE || this->pRawPe == nullptr)
         return;
     
+    std::cout << "\n Loading PE into memory : \n" << std::endl;
     std::cout << "$ Read " << dwSize << " bytes of file" << cPath << std::endl;
     
     //load Pe.
@@ -192,7 +201,8 @@ VOID Pe::Load(IN CHAR **args){
     this->lpPath = strdup(args[1]);
     this->dwSizeOfImage = pNtHdr->OptionalHeader.SizeOfImage;
 
-    std::cout << "\n\n$ Successfully mapped PE into memory." << std::endl;
+    std::cout << "\n\n$ Successfully mapped PE into memory.\n" << std::endl;
+
     return;
 
 __ERROR:

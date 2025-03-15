@@ -4,7 +4,7 @@
 /**
  * Get ptr to NT HEADER.
  */
-inline PIMAGE_NT_HEADERS GetNtHdr(BYTE* pImage){
+inline PIMAGE_NT_HEADERS GetNtHdr(IN PBYTE pImage){
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)pImage;
     PIMAGE_NT_HEADERS pNt  = (PIMAGE_NT_HEADERS)((BYTE*)pImage + pDos->e_lfanew);
     return pNt;
@@ -13,7 +13,7 @@ inline PIMAGE_NT_HEADERS GetNtHdr(BYTE* pImage){
 /**
  * Base check on PE file.
  */
-inline BOOL IsValidPeFile(BYTE* pImage){
+inline BOOL IsValidPeFile(IN PBYTE pImage){
     PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)pImage;
     if(pDos->e_magic != IMAGE_DOS_SIGNATURE)
         return FALSE;
@@ -45,7 +45,7 @@ inline VOID MapSections(IN PBYTE pRawPe, IN PBYTE pBuff, IN PIMAGE_NT_HEADERS pN
 /**
  * Loading PE imports.
  */
-inline BOOL LoadImports(BYTE* pBuff, PIMAGE_NT_HEADERS pNtHdr)
+inline BOOL LoadImports(IN PBYTE pBuff, IN PIMAGE_NT_HEADERS pNtHdr)
 {
     IMAGE_DATA_DIRECTORY importsDirectory = pNtHdr->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
     if (importsDirectory.VirtualAddress == 0) {
@@ -90,7 +90,7 @@ inline BOOL LoadImports(BYTE* pBuff, PIMAGE_NT_HEADERS pNtHdr)
 /**
  * Apply relocations.
  */
-inline BOOL Relocate(IN PBYTE pBuff, PIMAGE_NT_HEADERS pNtHdr, FIELD_PTR newImageBase){
+inline BOOL Relocate(IN PBYTE pBuff, IN PIMAGE_NT_HEADERS pNtHdr, IN FIELD_PTR newImageBase){
     IMAGE_DATA_DIRECTORY relocationDirectory = pNtHdr->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
     if(relocationDirectory.VirtualAddress == 0){
         return FALSE;
