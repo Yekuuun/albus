@@ -60,7 +60,6 @@ VOID Pe::Exec(IN CHAR **args){
 BOOL Pe::IsBuiltin(IN CHAR *cStr){
     UINT index = this->HashFunction(cStr);
     PBUILTINS_PE cmd = this->builtins[index];
-
     return this->builtins[index] != nullptr && (strcmp(this->builtins[index]->cName, cStr) == 0);
 }
 
@@ -72,6 +71,7 @@ VOID Pe::Init(){
     this->AddBuiltin("load", &Pe::Load);
     this->AddBuiltin("unload", &Pe::Unload);
     this->AddBuiltin("infos", &Pe::Infos);
+    this->AddBuiltin("dump", &Pe::Dump);
 }
 
 /**
@@ -80,14 +80,14 @@ VOID Pe::Init(){
 VOID Pe::Clean(){
     this->dwSizeOfImage = 0;
 
+    if(this->pRawPe)
+        HeapFree(GetProcessHeap(), 0, this->pRawPe);
+
     if(this->pBuff)
         VirtualFree(this->pBuff, this->dwSizeOfImage, MEM_RELEASE);
 
     if(this->lpPath)
         free((VOID*)this->lpPath);
-
-    if(this->pRawPe)
-        HeapFree(GetProcessHeap(), 0, this->pRawPe);
 }
 
 /**
@@ -149,7 +149,8 @@ VOID Pe::Unload(IN CHAR**){
         if(this->lpPath)
             free((VOID*)this->lpPath);
 
-        HeapFree(GetProcessHeap(), 0, this->pRawPe);
+        if(this->pRawPe)
+            HeapFree(GetProcessHeap(), 0, this->pRawPe);
     }
 }
 
@@ -203,6 +204,9 @@ VOID Pe::Load(IN CHAR **args){
 
     std::cout << "\n\n$ Successfully mapped PE into memory.\n" << std::endl;
 
+    if(this->pRawPe)
+        HeapFree(GetProcessHeap(), 0, this->pRawPe);
+        
     return;
 
 __ERROR:
@@ -211,4 +215,55 @@ __ERROR:
     
     if(this->pBuff)
         VirtualFree(this->pBuff, pNtHdr->OptionalHeader.SizeOfImage, MEM_RELEASE);
+}
+
+/**
+ * Dump a section from PE FILE.
+ */
+VOID Pe::Dump(IN CHAR **args){
+    if(args[1] == nullptr){
+        std::cout << "$ dump command must get a single param <section_name>. Use help command to get more informations." << std::endl;
+        return;
+    }
+
+    if(this->pBuff == nullptr){
+        std::cout << "$ No loaded PE file. Use load command to load file into memory." << std::endl;
+        return;
+    }
+
+    CHAR *cSection = args[1];
+    SIZE_T sSection = strlen(cSection);
+
+    if(sSection > 8){
+        std::cout << "$ section name must be max 8 characters. \n" << std::endl;
+        return; //max section name => 8
+    }
+
+    PIMAGE_NT_HEADERS pNtHdr = GetNtHdr(this->pBuff);
+    PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pNtHdr);
+
+    if(pSection == nullptr)
+        return;
+
+    for(WORD i = 0; i < pNtHdr->FileHeader.NumberOfSections; i++){
+        BYTE* pSectionName = (BYTE*)pSection[i].Name;
+        if(memcmp(pSectionName, cSection, sSection) == 0){
+            std::cout << "$ Found " << cSection << " section" << std::endl;
+            printf("\t- Virtual Size: 0x%08X\n", pSection[i].Misc.VirtualSize);
+            printf("\t- Raw Size: 0x%08X\n", pSection[i].SizeOfRawData);
+
+            std::cout << "\n-------------------DUMPING SECTION-------------------" << std::endl;
+            BYTE* pStartSection = ((BYTE*)pRawPe + pSection[i].PointerToRawData);
+            for(DWORD j = 0; j < pSection[i].SizeOfRawData; j++){
+                if(j % 16 == 0) printf("\n%04X: ", j);
+                printf("%02X ", pStartSection[j]);
+            }
+
+            printf("\n");
+            std::cout << "-----------------------------------------------------" << std::endl;
+            return;
+        }
+    }
+
+    std::cout << "$ " << cSection << " not found..." << std::endl;
 }

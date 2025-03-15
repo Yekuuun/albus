@@ -35,8 +35,9 @@ class Pe {
 
         //builtins.
         VOID Unload(IN CHAR** = nullptr);
-        VOID Load(IN CHAR **args);
         VOID Infos(IN CHAR** = nullptr);
+        VOID Load(IN CHAR **args);
+        VOID Dump(IN CHAR** args);
 
     public:
         VOID HandleCommand(IN CHAR **args);

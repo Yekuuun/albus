@@ -192,11 +192,27 @@ VOID Cmd::Exit(IN CHAR **args){
  * Base help command.
  */
 VOID Cmd::Help(IN CHAR**){
+    printf("\n");
     std::cout << "ALBUS COMMANDS :" << std::endl;
     printf("\n");
 
     std::cout << "SYNOPSIS :" << std::endl;
     printf("\t [COMMAND]... [OPTIONS]...\n");
+    
+    printf("\n");
+    std::cout << "BUILTINS :" << std::endl;
+    printf("\t pwd    => print current working directory.\n");
+    printf("\t exit   => exiting albus.\n");
+    printf("\t help   => show helping functions.\n");
+    printf("\t cls    => clean console.\n");
+    printf("\t clean  => clean console.\n");
+
+    printf("\n");
+    std::cout << "PE COMMANDS :" << std::endl;
+    printf("\t load <path_to_file> => load PE into memory.\n");
+    printf("\t dump <section_name> => dump a given section from the loaded PE file.\n");
+    printf("\t unload              => unload PE from memory.\n");
+    printf("\t infos               => show informations about loaded PE file (name, path, size)\n");
 
     std::cout << "\n\n" << std::endl;
 }
