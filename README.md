@@ -19,6 +19,8 @@
 >[!Important]
 >This repo contains samples I wroted. It may not be perfect so don't blame me if you see potentials errors. => don't hesitate to reach me on discord
 
+<br>
+
 ## You'll find : 
 
 🟢 **Albus cli** : Full operationnal CLI with builtins commands.
@@ -29,7 +31,7 @@
 
 🟢 **PE infos** : Display all interesting informations about the PE.
 
-🔴 **PE section DUMP** : DUMP PE section to view it.
+🟢 **PE section DUMP** : DUMP PE section to view it.
 
 🔴 **PE add section** : Add a new section to dedicated PE file.
 
@@ -37,21 +39,43 @@
 
 🔴 **IN PROGRESS...**
 
+<br>
+
+## USAGE : 
+
+```
+## ALBUS COMMANDS
+
+### SYNOPSIS
+  [COMMAND]... [OPTIONS]...
+
+### BUILTINS
+- `pwd`    → Print current working directory.  
+- `exit`   → Exiting Albus.  
+- `help`   → Show helping functions.  
+- `cls`    → Clean console.  
+- `clean`  → Clean console.  
+
+## PE COMMANDS
+- `load <path_to_file>` → Load PE into memory.  
+- `dump <section_name>` → Dump a given section from the loaded PE file.  
+- `unload`              → Unload PE from memory.  
+- `infos`               → Show information about the loaded PE file (name, path, size).  
+```
+
 ---
 
-## BUILTINS : 
+## BUILD IT :
 
-`pwd` : current path to working directory
+create a new folder `build`
 
-`exit` : exit & unload pe
+go to `build` & run `cmake ..`
 
-`help` : display helping informations
+build solution with `cmake --build .`
 
-`load <path_to_pe>` : load a pe into memory
+run it in `/build/debug`
 
-`unload` : unload PE from memory
-
-`infos` : display informations about the current loaded PE file.
+<br>
 
 ## Samples :
 
