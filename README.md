@@ -79,4 +79,8 @@ run it in `/build/debug`
 
 ## Samples :
 
+<img src="https://github.com/Yekuuun/albus/blob/main/assets/intro.png" alt="DebugInfo" />
+<img src="https://github.com/Yekuuun/albus/blob/main/assets/dump.png" alt="DebugInfo" />
+<img src="https://github.com/Yekuuun/albus/blob/main/assets/load-pe.png" alt="DebugInfo" />
+
 ....
