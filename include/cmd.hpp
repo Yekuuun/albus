@@ -48,6 +48,9 @@ class Cmd {
         //tokens list.
         PTOKEN tokens = nullptr;
 
+        //init
+        VOID ShowBanner();
+
         //main private functions.
         static BOOL WINAPI HandleCtrlC(IN DWORD dwType);
         VOID SetBashColor(IN WORD wColor); 
@@ -61,9 +64,10 @@ class Cmd {
         VOID Init();
 
         //bultins commands.
-        VOID Clean(CHAR** = nullptr);
-        VOID Pwd(CHAR** = nullptr);
+        VOID Clean(IN CHAR** = nullptr);
+        VOID Pwd(IN CHAR** = nullptr);
         VOID Exit(IN CHAR **args);
+        VOID Help(IN CHAR** = nullptr);
 
         //parsing & lexing
         VOID Lexer(IN CHAR *cInput);

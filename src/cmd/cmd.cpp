@@ -9,7 +9,7 @@
 #include "ft_str.hpp";
 
 Cmd::Cmd(){};
-Cmd::~Cmd(){}
+Cmd::~Cmd(){};
 
 /**
  * Handling CTRL-C commands.
@@ -17,6 +17,33 @@ Cmd::~Cmd(){}
  */
 BOOL WINAPI Cmd::HandleCtrlC(IN DWORD dwType){
     return dwType == CTRL_C_EVENT;
+}
+
+/**
+ * Show albus banner.
+ */
+VOID Cmd::ShowBanner(){
+    std::cout << "\033[1;32m" // Active la couleur verte
+    << R"(
+        ___    ____              
+       /   |  / / /_  __  _______
+      / /| | / / __ \/ / / / ___/
+     / ___ |/ / /_/ / /_/ (__  ) 
+    /_/  |_/_/_.___/\__,_/____/  
+                        
+    )" 
+    << "\033[0m" << std::endl; // Réinitialise la couleur
+
+
+    std::cout <<
+    "\033[1;33m-------------------------------------------\n"
+    "\033[1;32mProject:  \033[1;34mAlbus\n"
+    "\033[1;32mAuthor:   \033[1;34mYekuuun\n"
+    "\033[1;32mVersion:  \033[1;34m1.0.0\n"
+    "\033[1;32mDescription: \033[1;34mA base CLI PE viewer\n"
+    "\033[1;33m-------------------------------------------\n"
+    "\033[0m"
+    << std::endl;
 }
 
 /**
@@ -109,7 +136,7 @@ VOID Cmd::Init(){
 /**
  * Cleaning CMD.
  */
-VOID Cmd::Clean(CHAR**){
+VOID Cmd::Clean(IN CHAR**){
     HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hStdOut == nullptr)
         return;
@@ -138,14 +165,14 @@ VOID Cmd::Clean(CHAR**){
 /**
  * Display current dir absolute path.
  */
-VOID Cmd::Pwd(CHAR**){
+VOID Cmd::Pwd(IN CHAR**){
     LPSTR lpPath = (LPSTR)malloc(MAX_PATH * sizeof(char));
     if(lpPath == NULL)
         return;
 
     DWORD dwPath = GetCurrentDirectoryA(MAX_PATH, lpPath);
     if(dwPath != 0)
-        printf("%s\n", lpPath);
+        printf("$%s\n", lpPath);
 }
 
 /**
@@ -158,8 +185,23 @@ VOID Cmd::Exit(IN CHAR **args){
     if(args[1] != NULL)
         EXIT_CODE = atoi(args[1]);
 
-    printf("$ Exiting severus. CIAO....\n");
+    printf("$ Exiting albus. CIAO....\n");
+
+    if(this->tokens)
+        this->FreeTokens(this->tokens);
+        
     exit(EXIT_CODE);
+}
+
+/**
+ * Base help command.
+ */
+VOID Cmd::Help(IN CHAR**){
+    std::cout << "ALBUS COMMANDS :" << std::endl;
+    printf("\n");
+
+    std::cout << "SYNOPSIS :" << std::endl;
+    printf("\t [COMMAND]... [OPTIONS]...\n");
 }
 
 //--------LEXING & PARSING-----------
@@ -255,8 +297,6 @@ VOID Cmd::FreeTokens(IN PTOKEN head){
  * Parsing commands.
  */
 CHAR** Cmd::ParseCommands(IN PTOKEN tokens, OUT WORD *argc){
-
-    //vars.
     CHAR **result  = nullptr;
     WORD i         = 0;
     *argc          = 0;
@@ -293,6 +333,7 @@ CHAR** Cmd::ParseCommands(IN PTOKEN tokens, OUT WORD *argc){
  * Main function in charge of running shell handler.
  */
 VOID Cmd::RunShell(){
+
     //cmd handling.
     CHAR **cmd = nullptr;
     WORD argc  = 0;
@@ -303,10 +344,14 @@ VOID Cmd::RunShell(){
     this->Init();
     this->Clean();
 
+    Sleep(1);
+    this->ShowBanner();
+
     if(!SetConsoleCtrlHandler(Cmd::HandleCtrlC, TRUE)){
         this->Exit(nullptr);
     }
 
+    //main loop.
     while(this->KEEP_RUNNING){
         this->DisplayCmdHeader();
 
@@ -332,6 +377,10 @@ VOID Cmd::RunShell(){
 
             if(argc == 0)
                 continue;
+            
+            if(this->IsBuiltin(cmd[0])){
+                this->Exec(cmd);
+            }
 
             Sleep(1);
         }
