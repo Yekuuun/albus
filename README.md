@@ -13,7 +13,7 @@
 
 ```
 
-**Albus** is a base PE viewer in CLI developped to apply POO in CPP & due to my interest for Windows development aiming to create a simple tool to manipulate PE files easily.
+**Albus** is a base PE reversing tool in CLI developped to apply POO in CPP & due to my interest for Windows development aiming to create a simple tool to manipulate PE files easily. Albus contains base & cools features like manually load, unload, dumping section, parsing file to get informations about it etc...
 
 
 >[!Important]
@@ -23,7 +23,7 @@
 
 ## You'll find : 
 
-🟢 **Albus cli** : Full operationnal CLI with builtins commands.
+🟢 **CLI** : Fully operationnal CLI with builtins commands.
 
 🟢 **PE mapper** : Manually map PE into memory (local process virtual memory).
 
