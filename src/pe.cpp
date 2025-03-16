@@ -72,6 +72,7 @@ VOID Pe::Init(){
     this->AddBuiltin("unload", &Pe::Unload);
     this->AddBuiltin("infos", &Pe::Infos);
     this->AddBuiltin("dump", &Pe::Dump);
+    this->AddBuiltin("parse", &Pe::Parse);
 }
 
 /**
@@ -80,14 +81,24 @@ VOID Pe::Init(){
 VOID Pe::Clean(){
     this->dwSizeOfImage = 0;
 
-    if(this->pRawPe)
+    if (this->pBuff) {
+        MEMORY_BASIC_INFORMATION mbi;
+
+        if (VirtualQuery(this->pBuff, &mbi, sizeof(mbi)))
+            VirtualFree(this->pBuff, 0, MEM_RELEASE);
+
+        this->pBuff = nullptr;
+    }
+
+    if(this->pRawPe){
         HeapFree(GetProcessHeap(), 0, this->pRawPe);
+        this->pRawPe = nullptr;
+    }
 
-    if(this->pBuff)
-        VirtualFree(this->pBuff, this->dwSizeOfImage, MEM_RELEASE);
-
-    if(this->lpPath)
+    if(this->lpPath){
         free((VOID*)this->lpPath);
+        this->lpPath = nullptr;
+    }
 }
 
 /**
@@ -114,17 +125,13 @@ VOID Pe::HandleCommand(IN CHAR **args){
  */
 VOID Pe::Infos(IN CHAR**){
     if(this->pBuff){
-        Ft_console::SetBashColor(13);
-        std::cout << "\n-------------------------------------" << std::endl;
-        Ft_console::SetBashColor(7);
+        std::cout << "\n================ LOADED FILE ================" << std::endl;
 
-        std::cout << "LOADED PE INFORMATIONS : \n" << std::endl;
         std::cout << "Name :" << this->lpPath << std::endl;
-        std::cout << "Image size : " << this->dwSizeOfImage << std::endl;
+        std::cout << "Image size : " << this->dwSizeOfImage << " bytes" << std::endl;
         std::cout << "Base address : " << "0x" << static_cast<void*>(this->pBuff) << std::endl;
 
-        Ft_console::SetBashColor(13);
-        std::cout << "-------------------------------------" << std::endl;
+        std::cout << "==============================================" << std::endl;
         Ft_console::SetBashColor(7);
         printf("\n"); 
     }
@@ -140,17 +147,9 @@ VOID Pe::Unload(IN CHAR**){
     if(this->pBuff == nullptr){
         std::cout << "$ No PE mapped. try using help command for mapping a file." << std::endl;
     }
-    else {        
-        VirtualFree(this->pBuff, this->dwSizeOfImage, MEM_RELEASE);
-        std::cout << "$ Successfully unloaded " << this->lpPath << std::endl;
-
-        this->dwSizeOfImage = 0;
-
-        if(this->lpPath)
-            free((VOID*)this->lpPath);
-
-        if(this->pRawPe)
-            HeapFree(GetProcessHeap(), 0, this->pRawPe);
+    else {   
+        this->Clean();
+        std::cout << "$ Successfully unloaded PE file." << std::endl;
     }
 }
 
@@ -203,18 +202,10 @@ VOID Pe::Load(IN CHAR **args){
     this->dwSizeOfImage = pNtHdr->OptionalHeader.SizeOfImage;
 
     std::cout << "\n\n$ Successfully mapped PE into memory.\n" << std::endl;
-
-    if(this->pRawPe)
-        HeapFree(GetProcessHeap(), 0, this->pRawPe);
-        
     return;
 
 __ERROR:
-    if(this->pRawPe)
-        HeapFree(GetProcessHeap(), 0, this->pRawPe);
-    
-    if(this->pBuff)
-        VirtualFree(this->pBuff, pNtHdr->OptionalHeader.SizeOfImage, MEM_RELEASE);
+    this->Clean();
 }
 
 /**
@@ -252,7 +243,8 @@ VOID Pe::Dump(IN CHAR **args){
             printf("\t- Virtual Size: 0x%08X\n", pSection[i].Misc.VirtualSize);
             printf("\t- Raw Size: 0x%08X\n", pSection[i].SizeOfRawData);
 
-            std::cout << "\n-------------------DUMPING SECTION-------------------" << std::endl;
+            std::cout << "\n================DUMPING SECTION================" << std::endl;
+
             BYTE* pStartSection = ((BYTE*)pRawPe + pSection[i].PointerToRawData);
             for(DWORD j = 0; j < pSection[i].SizeOfRawData; j++){
                 if(j % 16 == 0) printf("\n%04X: ", j);
@@ -260,10 +252,69 @@ VOID Pe::Dump(IN CHAR **args){
             }
 
             printf("\n");
-            std::cout << "-----------------------------------------------------" << std::endl;
+            std::cout << "==================================================" << std::endl;
             return;
         }
     }
 
     std::cout << "$ " << cSection << " not found..." << std::endl;
+}
+
+/**
+ * Parsing PE file.
+ */
+VOID Pe::Parse(IN CHAR**){
+    if(this->pBuff == nullptr){
+        std::cout << "$ no loaded PE in memory. use load command, try help command for more informations." << std::endl;
+        return;
+    }
+
+    LPVOID pBaseAddress = (LPVOID)this->pBuff;
+
+    PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)pBaseAddress;
+    if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
+        std::cout << "$ Invalid PE signature (MZ missing)." << std::endl;
+        return;
+    }
+
+    // Récupérer l'en-tête NT
+    PIMAGE_NT_HEADERS pNtHeaders = (PIMAGE_NT_HEADERS)((BYTE*)pBaseAddress + pDosHeader->e_lfanew);
+    if (pNtHeaders->Signature != IMAGE_NT_SIGNATURE) {
+        std::cout << "$ Invalid PE signature (PE missing)." << std::endl;
+        return;
+    }
+
+    PIMAGE_OPTIONAL_HEADER pOptionalHeader = &pNtHeaders->OptionalHeader;
+
+    std::cout << "\n================ PE HEADER INFO ================\n";
+    std::cout << "$ Entry Point Address : 0x" << std::hex << pOptionalHeader->AddressOfEntryPoint << std::endl;
+    std::cout << "$ Image Base Address  : 0x" << std::hex << pOptionalHeader->ImageBase << std::endl;
+    std::cout << "$ Size of Image       : 0x" << std::hex << pOptionalHeader->SizeOfImage << " bytes" << std::endl;
+    std::cout << "$ Number of Sections  : " << std::dec << pNtHeaders->FileHeader.NumberOfSections << std::endl;
+
+    PIMAGE_DATA_DIRECTORY pImportDirectory = &pOptionalHeader->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (pImportDirectory->VirtualAddress != 0) {
+        std::cout << "$ Import Table Address : 0x" << std::hex << pImportDirectory->VirtualAddress << std::endl;
+    } 
+    else {
+        std::cout << "$ No Import Table found." << std::endl;
+    }
+
+    PIMAGE_DATA_DIRECTORY pRelocDirectory = &pOptionalHeader->DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
+    if (pRelocDirectory->VirtualAddress != 0) {
+        std::cout << "$ Relocation Table Address : 0x" << std::hex << pRelocDirectory->VirtualAddress << std::endl;
+    } 
+    else {
+        std::cout << "$ No Relocation Table found." << std::endl;
+    }
+
+    PIMAGE_DATA_DIRECTORY pExportDirectory = &pOptionalHeader->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    if (pExportDirectory->VirtualAddress != 0) {
+        std::cout << "$ Export Table Address : 0x" << std::hex << pExportDirectory->VirtualAddress << std::endl;
+    } 
+    else {
+        std::cout << "$ No Export Table found." << std::endl;
+    }
+
+    std::cout << "================================================\n" << std::endl;
 }

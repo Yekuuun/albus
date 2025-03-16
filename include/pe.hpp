@@ -14,7 +14,7 @@ typedef struct BUILTINS_PE {
 } BUILTINS_PE, *PBUILTINS_PE;
 
 /**
- * Base class.
+ * Base class for PE management.
  */
 class Pe {
     private:
@@ -36,6 +36,7 @@ class Pe {
         //builtins.
         VOID Unload(IN CHAR** = nullptr);
         VOID Infos(IN CHAR** = nullptr);
+        VOID Parse(IN CHAR** = nullptr);
         VOID Load(IN CHAR **args);
         VOID Dump(IN CHAR** args);
 

@@ -33,11 +33,7 @@
 
 🟢 **PE section DUMP** : DUMP PE section to view it.
 
-🔴 **PE add section** : Add a new section to dedicated PE file.
-
-🔴 **PE perms update** : Updating permissions for a dedicated section
-
-🔴 **IN PROGRESS...**
+🟢 **PE parser** : Show informations about the current loaded PE file.
 
 <br>
 
@@ -61,6 +57,7 @@
 - dump <section_name>  → Dump a given section from the loaded PE file.  
 - unload               → Unload PE from memory.  
 - infos                → Show information about the loaded PE file (name, path, size).  
+- parse                → Show information about the loaded PE file (more infos than infos command). 
 ```
 
 ## BUILD IT :

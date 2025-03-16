@@ -213,6 +213,7 @@ VOID Cmd::Help(IN CHAR**){
     printf("\t dump <section_name> => dump a given section from the loaded PE file.\n");
     printf("\t unload              => unload PE from memory.\n");
     printf("\t infos               => show informations about loaded PE file (name, path, size)\n");
+    printf("\t parse               => show informations about loaded PE file (more informations than infos command)\n");
 
     std::cout << "\n\n" << std::endl;
 }

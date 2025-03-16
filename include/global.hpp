@@ -7,7 +7,7 @@
 #include <iostream>
 #include <windows.h>
 
-#define HASH_TABLE_BUILTINS_SIZE 10
+#define HASH_TABLE_BUILTINS_SIZE 30
 
 //PE mapping & loader needs.
 #define RELOC_32BIT_FIELD 3
